@@ -1,0 +1,100 @@
+{
+    "name": "Boblight",
+    "idName": "Boblight",
+    "id": "d5271bea-1362-4cc6-888f-2ebe80bad46a",
+    "vendors": [
+        {
+            "id": "f0c9dd91-c2b0-4cd0-b161-a17fee9d2303",
+            "name": "Boblight",
+            "idName": "boblight",
+            "deviceClasses": [
+                {
+                    "deviceClassId": "05347200-416e-4b75-b4e3-6f913a2a7e76",
+                    "name": "Boblight",
+                    "idName": "boblight",
+                    "createMethods": ["user"],
+                    "paramTypes": [
+                        {
+                            "name": "name",
+                            "type": "QString",
+                            "inputType": "TextLine"
+                        },
+                        {
+                            "name": "host address",
+                            "type" : "QString",
+                            "inputType": "IPv4Address",
+                            "defaultValue": "127.0.0.1"
+                        },
+                        {
+                            "name": "port",
+                            "type" : "int",
+                            "defaultValue": 19333
+                        }
+                    ],
+                    "actionTypes": [
+                        {
+                            "id": "f9b8120a-439e-4e3d-98b6-09a09030c48c",
+                            "idName": "power",
+                            "name": "power",
+                            "paramTypes": [
+                                {
+                                    "name": "power",
+                                    "type": "bool",
+                                    "defaultValue": false
+                                }
+                            ]
+                        },
+                        {
+                            "id": "5756a111-ece2-47b5-9cfb-21c3d2fc2313",
+                            "idName": "color",
+                            "name": "set color",
+                            "paramTypes": [
+                                {
+                                    "name": "color",
+                                    "type": "QColor"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "f780b819-ef91-4a65-8dca-c3328889f5cc",
+                            "idName": "brightness",
+                            "name": "set brightness",
+                            "paramTypes": [
+                                {
+                                    "name": "brightness",
+                                    "type": "int",
+                                    "defaultValue": 100,
+                                    "minValue": 0,
+                                    "maxValue": 100,
+                                    "unit": "Percentage"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "13ebaadb-8bf8-428c-b332-f342706b8726",
+                            "idName": "priority",
+                            "name": "set priority",
+                            "paramTypes": [
+                                {
+                                    "name": "priority",
+                                    "type": "int",
+                                    "defaultValue": 1,
+                                    "minValue": 0,
+                                    "maxValue": 255
+                                }
+                            ]
+                        }
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "5f008bae-0390-43b3-8e13-0d93620cf2f2",
+                            "idName": "connected",
+                            "name": "connected",
+                            "type": "bool"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
