@@ -24,8 +24,6 @@
 #include "plugin/deviceplugin.h"
 #include "bobclient.h"
 
-#include <QProcess>
-
 class BobClient;
 
 class DevicePluginBoblight : public DevicePlugin

@@ -87,7 +87,7 @@
                     ],
                     "stateTypes": [
                         {
-                            "id": "5f008bae-0390-43b3-8e13-0d93620cf2f2",
+                            "id": "bb40f1bd-62b9-485e-86a1-b0c820a93b8a",
                             "idName": "connected",
                             "name": "connected",
                             "type": "bool"
