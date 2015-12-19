@@ -37,7 +37,7 @@ public:
     explicit BobClient(const QString &host = "127.0.0.1", const int &port = 19333, QObject *parent = 0);
 
     bool connectToBoblight();
-    bool connected() const;
+    bool connected();
 
     void setDefaultColor(const QColor &color);
 
@@ -68,7 +68,7 @@ public slots:
 
 private slots:
     void sync();
-    void setConnected(const bool &connected);
+    void setConnected(bool connected);
 
 signals:
     void connectionChanged();

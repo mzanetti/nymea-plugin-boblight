@@ -64,7 +64,7 @@ bool BobClient::connectToBoblight()
     return true;
 }
 
-bool BobClient::connected() const
+bool BobClient::connected()
 {
     return m_connected;
 }
@@ -144,7 +144,7 @@ void BobClient::sync()
     }
 }
 
-void BobClient::setConnected(const bool &connected)
+void BobClient::setConnected(bool connected)
 {
     m_connected = connected;
     emit connectionChanged();
