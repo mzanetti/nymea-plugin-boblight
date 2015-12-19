@@ -39,7 +39,7 @@ public:
     DeviceManager::HardwareResources requiredHardware() const override;
     DeviceManager::DeviceSetupStatus setupDevice(Device *device) override;
     void deviceRemoved(Device *device) override;
-    QList<ParamType> configurationDescription() const override;
+    //QList<ParamType> configurationDescription() const override;
 
     void guhTimer() override;
 

@@ -2,8 +2,6 @@ include(plugins.pri)
 
 TARGET = $$qtLibraryTarget(guh_devicepluginboblight)
 
-QT += gui
-
 message("Building $$deviceplugin$${TARGET}.so")
 
 INCLUDEPATH += /usr/local/include/

@@ -73,13 +73,13 @@ void DevicePluginBoblight::deviceRemoved(Device *device)
     client->deleteLater();
 }
 
-QList<ParamType> DevicePluginBoblight::configurationDescription() const
-{
-    QList<ParamType> params;
-    ParamType defaultColorParapType("default color", QVariant::Color, QColor("#ffed2b"));
-    params.append(defaultColorParapType);
-    return params;
-}
+//QList<ParamType> DevicePluginBoblight::configurationDescription() const
+//{
+//    QList<ParamType> params;
+//    ParamType defaultColorParapType("default color", QVariant::Color, QColor("#ffed2b"));
+//    params.append(defaultColorParapType);
+//    return params;
+//}
 
 void DevicePluginBoblight::guhTimer()
 {
@@ -93,7 +93,8 @@ void DevicePluginBoblight::guhTimer()
 DeviceManager::DeviceSetupStatus DevicePluginBoblight::setupDevice(Device *device)
 {
     BobClient *bobClient = new BobClient(device->paramValue("host address").toString(), device->paramValue("port").toInt(), this);
-    bobClient->setDefaultColor(configValue("default color").value<QColor>());
+    //bobClient->setDefaultColor(configValue("default color").value<QColor>());
+    bobClient->setDefaultColor(QColor("#ffed2b"));
 
     if (!bobClient->connectToBoblight()) {
         bobClient->deleteLater();
@@ -110,6 +111,9 @@ DeviceManager::DeviceSetupStatus DevicePluginBoblight::setupDevice(Device *devic
 DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, const Action &action)
 {
     BobClient *bobClient = m_bobClients.key(device);
+    if (!bobClient)
+        return DeviceManager::DeviceErrorHardwareNotAvailable;
+
     if (!bobClient->connected())
         return DeviceManager::DeviceErrorHardwareNotAvailable;
 
