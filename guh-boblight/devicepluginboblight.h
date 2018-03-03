@@ -25,6 +25,7 @@
 #include "bobclient.h"
 
 class BobClient;
+class PluginTimer;
 
 class DevicePluginBoblight : public DevicePlugin
 {
@@ -36,10 +37,14 @@ class DevicePluginBoblight : public DevicePlugin
 public:
     explicit DevicePluginBoblight();
 
+    void init() override;
+
     DeviceManager::DeviceSetupStatus setupDevice(Device *device) override;
     void deviceRemoved(Device *device) override;
 
 private:
+    PluginTimer *m_pluginTimer = nullptr;
+
     QHash<BobClient *, Device *> m_bobClients;
 
 public slots:
@@ -47,6 +52,7 @@ public slots:
 
 private slots:
     void onConnectionChanged();
+    void guhTimer();
 };
 
 #endif // DEVICEPLUGINBOBLIGHT_H

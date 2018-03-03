@@ -53,12 +53,19 @@
 
 #include "bobclient.h"
 #include "plugininfo.h"
+#include "plugintimer.h"
 
 #include <QDebug>
 #include <QStringList>
 
 DevicePluginBoblight::DevicePluginBoblight()
 {
+}
+
+void DevicePluginBoblight::init()
+{
+    m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(15);
+    connect(m_pluginTimer, &PluginTimer::timeout, this, &DevicePluginBoblight::guhTimer);
 }
 
 void DevicePluginBoblight::deviceRemoved(Device *device)
@@ -68,14 +75,14 @@ void DevicePluginBoblight::deviceRemoved(Device *device)
     client->deleteLater();
 }
 
-//void DevicePluginBoblight::guhTimer()
-//{
-//    foreach (BobClient *client, m_bobClients.keys()) {
-//        if (!client->connected()) {
-//            client->connectToBoblight();
-//        }
-//    }
-//}
+void DevicePluginBoblight::guhTimer()
+{
+    foreach (BobClient *client, m_bobClients.keys()) {
+        if (!client->connected()) {
+            client->connectToBoblight();
+        }
+    }
+}
 
 DeviceManager::DeviceSetupStatus DevicePluginBoblight::setupDevice(Device *device)
 {
