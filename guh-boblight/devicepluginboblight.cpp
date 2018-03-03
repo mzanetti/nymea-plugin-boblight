@@ -61,11 +61,6 @@ DevicePluginBoblight::DevicePluginBoblight()
 {
 }
 
-DeviceManager::HardwareResources DevicePluginBoblight::requiredHardware() const
-{
-    return DeviceManager::HardwareResourceTimer;
-}
-
 void DevicePluginBoblight::deviceRemoved(Device *device)
 {
     BobClient *client = m_bobClients.key(device);
@@ -73,26 +68,18 @@ void DevicePluginBoblight::deviceRemoved(Device *device)
     client->deleteLater();
 }
 
-//QList<ParamType> DevicePluginBoblight::configurationDescription() const
+//void DevicePluginBoblight::guhTimer()
 //{
-//    QList<ParamType> params;
-//    ParamType defaultColorParapType("default color", QVariant::Color, QColor("#ffed2b"));
-//    params.append(defaultColorParapType);
-//    return params;
+//    foreach (BobClient *client, m_bobClients.keys()) {
+//        if (!client->connected()) {
+//            client->connectToBoblight();
+//        }
+//    }
 //}
-
-void DevicePluginBoblight::guhTimer()
-{
-    foreach (BobClient *client, m_bobClients.keys()) {
-        if (!client->connected()) {
-            client->connectToBoblight();
-        }
-    }
-}
 
 DeviceManager::DeviceSetupStatus DevicePluginBoblight::setupDevice(Device *device)
 {
-    BobClient *bobClient = new BobClient(device->paramValue("host address").toString(), device->paramValue("port").toInt(), this);
+    BobClient *bobClient = new BobClient(device->paramValue(boblightHostAddressParamTypeId).toString(), device->paramValue(boblightPortParamTypeId).toInt(), this);
     //bobClient->setDefaultColor(configValue("default color").value<QColor>());
     bobClient->setDefaultColor(QColor("#ffed2b"));
 
@@ -101,7 +88,7 @@ DeviceManager::DeviceSetupStatus DevicePluginBoblight::setupDevice(Device *devic
         return DeviceManager::DeviceSetupStatusFailure;
     }
 
-    device->setStateValue(connectedStateTypeId, true);
+    device->setStateValue(boblightConnectedStateTypeId, true);
     m_bobClients.insert(bobClient, device);
     connect(bobClient, SIGNAL(connectionChanged()), this, SLOT(onConnectionChanged()));
 
@@ -118,17 +105,17 @@ DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, c
         return DeviceManager::DeviceErrorHardwareNotAvailable;
 
     if (device->deviceClassId() == boblightDeviceClassId) {
-        if (action.actionTypeId() == powerActionTypeId) {
-            bobClient->setAllPower(action.param("power").value().toBool());
+        if (action.actionTypeId() == boblightPowerActionTypeId) {
+            bobClient->setAllPower(action.param(boblightPowerParamTypeId).value().toBool());
             return DeviceManager::DeviceErrorNoError;
-        } else if (action.actionTypeId() == priorityActionTypeId) {
-            bobClient->setPriority(action.param("priority").value().toInt());
+        } else if (action.actionTypeId() == boblightPriorityActionTypeId) {
+            bobClient->setPriority(action.param(boblightPriorityParamTypeId).value().toInt());
             return DeviceManager::DeviceErrorNoError;
-        } else if (action.actionTypeId() == colorActionTypeId) {
-            bobClient->setColor(-1, action.param("color").value().value<QColor>());
+        } else if (action.actionTypeId() == boblightColorActionTypeId) {
+            bobClient->setColor(-1, action.param(boblightColorParamTypeId).value().value<QColor>());
             return DeviceManager::DeviceErrorNoError;
-        }  else if (action.actionTypeId() == brightnessActionTypeId) {
-            bobClient->setBrightness(action.param("brightness").value().toInt());
+        }  else if (action.actionTypeId() == boblightBrightnessActionTypeId) {
+            bobClient->setBrightness(action.param(boblightBrightnessParamTypeId).value().toInt());
             return DeviceManager::DeviceErrorNoError;
         }
     }
@@ -140,6 +127,6 @@ void DevicePluginBoblight::onConnectionChanged()
 {
     BobClient *bobClient = static_cast<BobClient *>(sender());
     Device *device = m_bobClients.value(bobClient);
-    device->setStateValue(connectedStateTypeId, bobClient->connected());
+    device->setStateValue(boblightConnectedStateTypeId, bobClient->connected());
 }
 

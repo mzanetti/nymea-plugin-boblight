@@ -1,32 +1,38 @@
 {
-    "name": "Boblight",
-    "idName": "Boblight",
     "id": "d5271bea-1362-4cc6-888f-2ebe80bad46a",
+    "name": "Boblight",
+    "displayName": "Boblight",
     "vendors": [
         {
             "id": "f0c9dd91-c2b0-4cd0-b161-a17fee9d2303",
-            "name": "Boblight",
-            "idName": "boblight",
+            "name": "boblight",
+            "displayName": "Boblight",
             "deviceClasses": [
                 {
-                    "deviceClassId": "05347200-416e-4b75-b4e3-6f913a2a7e76",
-                    "name": "Boblight",
-                    "idName": "boblight",
+                    "id": "05347200-416e-4b75-b4e3-6f913a2a7e76",
+                    "name": "boblight",
+                    "displayName": "Boblight",
                     "createMethods": ["user"],
                     "paramTypes": [
                         {
+                            "id": "7b5b784d-d623-4a2e-b081-9be84b1ce1a8",
                             "name": "name",
+                            "displayName": "Name",
                             "type": "QString",
                             "inputType": "TextLine"
                         },
                         {
-                            "name": "host address",
+                            "id": "8d2845fa-96b6-41c3-b078-64c9bcef6c1b",
+                            "name": "hostAddress",
+                            "displayName": "Host Address",
                             "type" : "QString",
                             "inputType": "IPv4Address",
                             "defaultValue": "127.0.0.1"
                         },
                         {
+                            "id": "8cbe5ef8-6b45-441e-9051-08d48f3948da",
                             "name": "port",
+                            "displayName": "Port",
                             "type" : "int",
                             "defaultValue": 19333
                         }
@@ -34,11 +40,13 @@
                     "actionTypes": [
                         {
                             "id": "f9b8120a-439e-4e3d-98b6-09a09030c48c",
-                            "idName": "power",
                             "name": "power",
+                            "displayName": "Power",
                             "paramTypes": [
                                 {
+                                    "id": "5177df1c-bd4a-4668-adb9-6834ccd806ea",
                                     "name": "power",
+                                    "displayName": "Power",
                                     "type": "bool",
                                     "defaultValue": false
                                 }
@@ -46,22 +54,26 @@
                         },
                         {
                             "id": "5756a111-ece2-47b5-9cfb-21c3d2fc2313",
-                            "idName": "color",
-                            "name": "set color",
+                            "name": "color",
+                            "displayName": "Set Color",
                             "paramTypes": [
                                 {
+                                    "id": "2e3d309d-964c-445a-8b0d-82df495261a8",
                                     "name": "color",
+                                    "displayName": "Color",
                                     "type": "QColor"
                                 }
                             ]
                         },
                         {
                             "id": "f780b819-ef91-4a65-8dca-c3328889f5cc",
-                            "idName": "brightness",
-                            "name": "set brightness",
+                            "name": "brightness",
+                            "displayName": "set brightness",
                             "paramTypes": [
                                 {
+                                    "id": "e912e612-2971-4ad3-a1b7-9ade5f1b0ef7",
                                     "name": "brightness",
+                                    "displayName": "Brigthness",
                                     "type": "int",
                                     "defaultValue": 100,
                                     "minValue": 0,
@@ -72,11 +84,13 @@
                         },
                         {
                             "id": "13ebaadb-8bf8-428c-b332-f342706b8726",
-                            "idName": "priority",
-                            "name": "set priority",
+                            "name": "priority",
+                            "displayName": "set priority",
                             "paramTypes": [
                                 {
+                                    "id": "c38a977e-b34f-45cd-b28a-a03e88007548",
                                     "name": "priority",
+                                    "displayName": "Priority",
                                     "type": "int",
                                     "defaultValue": 1,
                                     "minValue": 0,
@@ -88,8 +102,8 @@
                     "stateTypes": [
                         {
                             "id": "bb40f1bd-62b9-485e-86a1-b0c820a93b8a",
-                            "idName": "connected",
                             "name": "connected",
+                            "displayName": "connected",
                             "type": "bool"
                         }
                     ]
