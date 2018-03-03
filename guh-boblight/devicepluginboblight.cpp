@@ -119,7 +119,7 @@ DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, c
             bobClient->setPriority(action.param(boblightPriorityParamTypeId).value().toInt());
             return DeviceManager::DeviceErrorNoError;
         } else if (action.actionTypeId() == boblightColorActionTypeId) {
-            bobClient->setColor(-1, action.param(boblightColorParamTypeId).value().value<QColor>());
+            bobClient->setColor(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightColorParamTypeId).value().value<QColor>());
             return DeviceManager::DeviceErrorNoError;
         }  else if (action.actionTypeId() == boblightBrightnessActionTypeId) {
             bobClient->setBrightness(action.param(boblightBrightnessParamTypeId).value().toInt());
