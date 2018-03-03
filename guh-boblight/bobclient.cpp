@@ -41,6 +41,9 @@ BobClient::BobClient(const QString &host, const int &port, QObject *parent) :
 
 bool BobClient::connectToBoblight()
 {
+    if (connected()) {
+        return true;
+    }
     m_boblight = boblight_init();
 
     //try to connect, if we can't then bitch to stderr and destroy boblight
@@ -79,17 +82,15 @@ void BobClient::setPriority(const int &priority)
     qCDebug(dcBoblight) << "setting priority to" << priority << boblight_setpriority(m_boblight, priority);
 }
 
-void BobClient::setAllPower(const bool &power)
-{    
-    for (int i = 0; i < lightsCount(); ++i) {
-        QColor color = currentColor(i);
-        if (power) {
-            color.setAlpha(255);
-        } else {
-            color.setAlpha(0);
-        }
-        setColor(i, color);
+void BobClient::setPower(int channel, bool power)
+{
+    QColor color = currentColor(channel);
+    if (power) {
+        color.setAlpha(255);
+    } else {
+        color.setAlpha(0);
     }
+    setColor(channel, color);
 }
 
 BobChannel *BobClient::getChannel(const int &id)

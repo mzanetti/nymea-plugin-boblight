@@ -45,7 +45,7 @@ public:
 private:
     PluginTimer *m_pluginTimer = nullptr;
 
-    QHash<BobClient *, Device *> m_bobClients;
+    QHash<Device*, BobClient*> m_bobClients;
 
 public slots:
     DeviceManager::DeviceError executeAction(Device *device, const Action &action) override;

@@ -45,7 +45,7 @@ public:
     QColor currentColor(const int &channel);
 
     void setPriority(const int &priority);
-    void setAllPower(const bool &power);
+    void setPower(int channel, bool power);
 
 private:
     void *m_boblight;

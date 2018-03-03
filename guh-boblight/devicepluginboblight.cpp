@@ -70,14 +70,15 @@ void DevicePluginBoblight::init()
 
 void DevicePluginBoblight::deviceRemoved(Device *device)
 {
-    BobClient *client = m_bobClients.key(device);
-    m_bobClients.remove(client);
-    client->deleteLater();
+    BobClient *client = m_bobClients.take(device);
+    if (!m_bobClients.values().contains(client)) {
+        client->deleteLater();
+    }
 }
 
 void DevicePluginBoblight::guhTimer()
 {
-    foreach (BobClient *client, m_bobClients.keys()) {
+    foreach (BobClient *client, m_bobClients) {
         if (!client->connected()) {
             client->connectToBoblight();
         }
@@ -88,7 +89,7 @@ DeviceManager::DeviceSetupStatus DevicePluginBoblight::setupDevice(Device *devic
 {
     BobClient *bobClient = new BobClient(device->paramValue(boblightHostAddressParamTypeId).toString(), device->paramValue(boblightPortParamTypeId).toInt(), this);
     //bobClient->setDefaultColor(configValue("default color").value<QColor>());
-    bobClient->setDefaultColor(QColor("#ffed2b"));
+//    bobClient->setDefaultColor(QColor("#ffed2b"));
 
     if (!bobClient->connectToBoblight()) {
         bobClient->deleteLater();
@@ -96,7 +97,7 @@ DeviceManager::DeviceSetupStatus DevicePluginBoblight::setupDevice(Device *devic
     }
 
     device->setStateValue(boblightConnectedStateTypeId, true);
-    m_bobClients.insert(bobClient, device);
+    m_bobClients.insert(device, bobClient);
     connect(bobClient, SIGNAL(connectionChanged()), this, SLOT(onConnectionChanged()));
 
     return DeviceManager::DeviceSetupStatusSuccess;
@@ -104,7 +105,7 @@ DeviceManager::DeviceSetupStatus DevicePluginBoblight::setupDevice(Device *devic
 
 DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, const Action &action)
 {
-    BobClient *bobClient = m_bobClients.key(device);
+    BobClient *bobClient = m_bobClients.value(device);
     if (!bobClient)
         return DeviceManager::DeviceErrorHardwareNotAvailable;
 
@@ -113,7 +114,7 @@ DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, c
 
     if (device->deviceClassId() == boblightDeviceClassId) {
         if (action.actionTypeId() == boblightPowerActionTypeId) {
-            bobClient->setAllPower(action.param(boblightPowerParamTypeId).value().toBool());
+            bobClient->setPower(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightPowerParamTypeId).value().toBool());
             return DeviceManager::DeviceErrorNoError;
         } else if (action.actionTypeId() == boblightPriorityActionTypeId) {
             bobClient->setPriority(action.param(boblightPriorityParamTypeId).value().toInt());
@@ -133,7 +134,8 @@ DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, c
 void DevicePluginBoblight::onConnectionChanged()
 {
     BobClient *bobClient = static_cast<BobClient *>(sender());
-    Device *device = m_bobClients.value(bobClient);
-    device->setStateValue(boblightConnectedStateTypeId, bobClient->connected());
+    foreach (Device *device, m_bobClients.keys(bobClient)) {
+        device->setStateValue(boblightConnectedStateTypeId, bobClient->connected());
+    }
 }
 
