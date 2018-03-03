@@ -104,6 +104,8 @@
                             "id": "bb40f1bd-62b9-485e-86a1-b0c820a93b8a",
                             "name": "connected",
                             "displayName": "connected",
+                            "defaultValue": false,
+                            "displayNameEvent": "Connected changed",
                             "type": "bool"
                         }
                     ]
