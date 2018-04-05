@@ -1,2 +1,2 @@
-# guh-boblightplugin
-Custom guh plugin for boblight support
+# nymea-plugin-boblight
+nymea plugin for boblight support
