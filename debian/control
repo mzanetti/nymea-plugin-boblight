@@ -4,6 +4,7 @@ Priority: options
 Maintainer: Michael Zanetti <michael.zanetti@guh.io>
 Build-depends: debhelper (>= 9.0.0),
                libnymea1-dev,
+               boblight,
 Standards-Version: 3.9.3
 
 Package: nymea-plugin-boblight
