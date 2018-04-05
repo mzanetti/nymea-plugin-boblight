@@ -39,6 +39,13 @@ BobClient::BobClient(const QString &host, const int &port, QObject *parent) :
     connect(m_syncTimer, SIGNAL(timeout()), this, SLOT(sync()));
 }
 
+BobClient::~BobClient()
+{
+    if (m_boblight) {
+        boblight_destroy(m_boblight);
+    }
+}
+
 bool BobClient::connectToBoblight()
 {
     if (connected()) {
@@ -50,6 +57,7 @@ bool BobClient::connectToBoblight()
     if (!boblight_connect(m_boblight, m_host.toLatin1().data(), m_port, 5000000) || !boblight_setpriority(m_boblight, 1)) {
         qCWarning(dcBoblight) << "Failed to connect:" << boblight_geterror(m_boblight);
         boblight_destroy(m_boblight);
+        m_boblight = nullptr;
         setConnected(false);
         return false;
     }
@@ -59,10 +67,8 @@ bool BobClient::connectToBoblight()
         BobChannel *channel = new BobChannel(i, this);
         channel->setColor(QColor(255,255,255,0));
         connect(channel, SIGNAL(colorChanged()), this, SLOT(sync()));
-        m_channels.append(channel);
+        m_channels.insert(i, channel);
     }
-
-    setColor(-1, m_defaultColor);
     setConnected(true);
     return true;
 }
@@ -72,11 +78,6 @@ bool BobClient::connected()
     return m_connected;
 }
 
-void BobClient::setDefaultColor(const QColor &color)
-{
-    m_defaultColor = color;
-}
-
 void BobClient::setPriority(const int &priority)
 {
     qCDebug(dcBoblight) << "setting priority to" << priority << boblight_setpriority(m_boblight, priority);
@@ -84,13 +85,9 @@ void BobClient::setPriority(const int &priority)
 
 void BobClient::setPower(int channel, bool power)
 {
-    QColor color = currentColor(channel);
-    if (power) {
-        color.setAlpha(255);
-    } else {
-        color.setAlpha(0);
-    }
-    setColor(channel, color);
+    qCDebug(dcBoblight()) << "BobClient: setPower" << channel << power;
+    m_channels.value(channel)->setPower(power);
+    emit powerChanged(channel, power);
 }
 
 BobChannel *BobClient::getChannel(const int &id)
@@ -110,18 +107,24 @@ void BobClient::setColor(int channel, QColor color)
         }
     } else {
         BobChannel *c = getChannel(channel);
-        if (c)
-            c->animateToColor(color);
+        if (c) {
+            c->setColor(color);
             qCDebug(dcBoblight) << "set channel" << channel << "to color" << color;
+            emit colorChanged(channel, color);
+        }
     }
 }
 
-void BobClient::setBrightness(int brightness)
+void BobClient::setBrightness(int channel, int brightness)
 {
-    for (int i = 0; i < lightsCount(); ++i) {
-        QColor color = currentColor(i);
-        color.setAlpha(qRound(brightness * 255.0 / 100));
-        setColor(i, color);
+    QColor color = m_channels.value(channel)->color();
+    color.setAlpha(qRound(brightness * 255.0 / 100));
+    m_channels.value(channel)->setColor(color);
+    emit brightnessChanged(channel, brightness);
+
+    if (brightness > 0) {
+        m_channels.value(channel)->setPower(true);
+        emit powerChanged(channel, true);
     }
 }
 
@@ -132,15 +135,17 @@ void BobClient::sync()
 
     foreach (BobChannel *channel, m_channels) {
         int rgb[3];
-        rgb[0] = channel->color().red() * channel->color().alphaF();
-        rgb[1] = channel->color().green() * channel->color().alphaF();
-        rgb[2] = channel->color().blue() * channel->color().alphaF();
+        rgb[0] = channel->finalColor().red() * channel->finalColor().alphaF();
+        rgb[1] = channel->finalColor().green() * channel->finalColor().alphaF();
+        rgb[2] = channel->finalColor().blue() * channel->finalColor().alphaF();
         boblight_addpixel(m_boblight, channel->id(), rgb);
     }
 
     if (!boblight_sendrgb(m_boblight, 1, NULL)) {
         qCWarning(dcBoblight) << "Boblight connection error:" << boblight_geterror(m_boblight);
         boblight_destroy(m_boblight);
+        qDeleteAll(m_channels);
+        m_channels.clear();
         setConnected(false);
     }
 }

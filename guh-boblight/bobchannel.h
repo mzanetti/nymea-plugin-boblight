@@ -28,7 +28,11 @@
 class BobChannel : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool power READ power WRITE setPower NOTIFY powerChanged)
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
+
+    // don't directly write to this, the propertyAnimation requires a writable property tho...
+    Q_PROPERTY(QColor finalColor READ finalColor WRITE setFinalColor NOTIFY finalColorChanged)
 
 public:
     explicit BobChannel(const int &id, QObject *parent = 0);
@@ -37,19 +41,26 @@ public:
 
     QColor color() const;
     void setColor(const QColor &color);
-    void animateToColor(const QColor &color);
+
+    bool power() const;
+    void setPower(bool power);
+
+    QColor finalColor() const;
+    void setFinalColor(const QColor &color);
 
 private:
     QPropertyAnimation *m_animation;
     int m_id;
-    QColor m_color;
-    int m_brightness;
+    bool m_power = false;
+    QColor m_color = Qt::white;
+    QColor m_finalColor = Qt::black;
 
 signals:
     void colorChanged();
     void brightnessChanged();
+    void finalColorChanged();
+    void powerChanged();
 
-public slots:
 };
 
 #endif // BOBCHANNEL_H

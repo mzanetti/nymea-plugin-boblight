@@ -31,7 +31,7 @@ class DevicePluginBoblight : public DevicePlugin
 {
     Q_OBJECT
 
-    Q_PLUGIN_METADATA(IID "guru.guh.DevicePlugin" FILE "devicepluginboblight.json")
+    Q_PLUGIN_METADATA(IID "io.nymea.DevicePlugin" FILE "devicepluginboblight.json")
     Q_INTERFACES(DevicePlugin)
 
 public:
@@ -40,19 +40,28 @@ public:
     void init() override;
 
     DeviceManager::DeviceSetupStatus setupDevice(Device *device) override;
+    void postSetupDevice(Device *device) override;
     void deviceRemoved(Device *device) override;
 
-private:
-    PluginTimer *m_pluginTimer = nullptr;
+    void startMonitoringAutoDevices() override;
 
-    QHash<Device*, BobClient*> m_bobClients;
-
-public slots:
     DeviceManager::DeviceError executeAction(Device *device, const Action &action) override;
 
 private slots:
     void onConnectionChanged();
     void guhTimer();
+
+    void onPowerChanged(int channel, bool power);
+    void onBrightnessChanged(int channel, int brightness);
+    void onColorChanged(int channel, const QColor &color);
+
+private:
+    QColor tempToRgb(int miredColorTemp);
+private:
+    PluginTimer *m_pluginTimer = nullptr;
+
+    QHash<DeviceId, BobClient*> m_bobClients;
+    bool m_canCreateAutoDevices = false;
 };
 
 #endif // DEVICEPLUGINBOBLIGHT_H

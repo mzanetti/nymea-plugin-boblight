@@ -6,10 +6,10 @@ QT += network bluetooth
 QMAKE_CXXFLAGS += -Werror -std=c++11 -g
 QMAKE_LFLAGS += -std=c++11
 
-INCLUDEPATH += /usr/include/guh
-LIBS += -lguh
+INCLUDEPATH += /usr/include/nymea
+LIBS += -lnymea
 
-PLUGIN_PATH=/usr/lib/$$system('dpkg-architecture -q DEB_HOST_MULTIARCH')/guh/plugins/
+PLUGIN_PATH=/usr/lib/$$system('dpkg-architecture -q DEB_HOST_MULTIARCH')/nymea/plugins/
 
 # Check for Bluetoot LE support (Qt >= 5.4)
 equals(QT_MAJOR_VERSION, 5):greaterThan(QT_MINOR_VERSION, 3) {
@@ -18,7 +18,7 @@ equals(QT_MAJOR_VERSION, 5):greaterThan(QT_MINOR_VERSION, 3) {
 
 # Check if this is a snap build
 snappy{
-    INCLUDEPATH+=$$(SNAPCRAFT_STAGE)/usr/include/guh
+    INCLUDEPATH+=$$(SNAPCRAFT_STAGE)/usr/include/nymea
 }
 
 # Create plugininfo file
@@ -27,7 +27,7 @@ plugininfo.target = plugininfo.h
 plugininfo.output = plugininfo.h
 plugininfo.CONFIG = no_link
 plugininfo.input = JSONFILES
-plugininfo.commands = touch ${QMAKE_FILE_OUT}; guh-generateplugininfo \
+plugininfo.commands = touch ${QMAKE_FILE_OUT}; nymea-generateplugininfo \
                             --filetype i \
                             --jsonfile ${QMAKE_FILE_NAME} \
                             --output ${QMAKE_FILE_OUT} \
@@ -41,7 +41,7 @@ externplugininfo.target = extern-plugininfo.h
 externplugininfo.output = extern-plugininfo.h
 externplugininfo.CONFIG = no_link
 externplugininfo.input = JSONFILES
-externplugininfo.commands = touch ${QMAKE_FILE_OUT}; guh-generateplugininfo \
+externplugininfo.commands = touch ${QMAKE_FILE_OUT}; nymea-generateplugininfo \
                             --filetype e \
                             --jsonfile ${QMAKE_FILE_NAME} \
                             --output ${QMAKE_FILE_OUT} \

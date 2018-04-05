@@ -35,36 +35,33 @@ class BobClient : public QObject
     Q_OBJECT
 public:
     explicit BobClient(const QString &host = "127.0.0.1", const int &port = 19333, QObject *parent = 0);
+    ~BobClient();
 
     bool connectToBoblight();
     bool connected();
-
-    void setDefaultColor(const QColor &color);
 
     int lightsCount();
     QColor currentColor(const int &channel);
 
     void setPriority(const int &priority);
+
     void setPower(int channel, bool power);
+    void setColor(int channel, QColor color);
+    void setBrightness(int channel, int brightness);
 
 private:
-    void *m_boblight;
+    void *m_boblight = nullptr;
 
     QTimer *m_syncTimer;
     QString m_host;
     int m_port;
     bool m_connected;
-    QColor m_defaultColor;
-
 
     QMap<int, QColor> m_colors;
-    QList<BobChannel *> m_channels;
+    QMap<int, BobChannel *> m_channels;
 
     BobChannel *getChannel(const int &id);
 
-public slots:
-    void setColor(int channel, QColor color);
-    void setBrightness(int brightness);
 
 private slots:
     void sync();
@@ -72,6 +69,9 @@ private slots:
 
 signals:
     void connectionChanged();
+    void powerChanged(int channel, bool power);
+    void brightnessChanged(int channel, int brightness);
+    void colorChanged(int channel, const QColor &color);
 };
 
 #endif // BOBCLIENT_H

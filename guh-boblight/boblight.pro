@@ -1,8 +1,10 @@
-include(plugins.pri)
+include(/usr/include/nymea/plugins.pri)
 
-TARGET = $$qtLibraryTarget(guh_devicepluginboblight)
+QT += dbus bluetooth
 
-message("Building $$deviceplugin$${TARGET}.so")
+CONFIG += c++11
+
+TARGET = $$qtLibraryTarget(nymea_devicepluginboblight)
 
 INCLUDEPATH += /usr/local/include/
 LIBS += -L/usr/local/lib/ -lboblight

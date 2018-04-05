@@ -57,6 +57,7 @@
 
 #include <QDebug>
 #include <QStringList>
+#include <QtMath>
 
 DevicePluginBoblight::DevicePluginBoblight()
 {
@@ -70,9 +71,44 @@ void DevicePluginBoblight::init()
 
 void DevicePluginBoblight::deviceRemoved(Device *device)
 {
-    BobClient *client = m_bobClients.take(device);
-    if (!m_bobClients.values().contains(client)) {
+    if (device->deviceClassId() == boblightServerDeviceClassId) {
+        BobClient *client = m_bobClients.take(device->id());
         client->deleteLater();
+    }
+}
+
+void DevicePluginBoblight::startMonitoringAutoDevices()
+{
+    m_canCreateAutoDevices = true;
+    qCDebug(dcBoblight()) << "Populating auto devices" << myDevices().count();
+    QHash<DeviceId, int> parentDevices;
+    QHash<DeviceId, Device*> deviceIds;
+    foreach (Device *device, myDevices()) {
+        deviceIds.insert(device->id(), device);
+        if (device->deviceClassId() == boblightServerDeviceClassId) {
+            qWarning() << "Device" << device->id() << "is bridge";
+            if (!parentDevices.contains(device->id())) {
+                parentDevices[device->id()] = 0;
+            }
+        } else if (device->deviceClassId() == boblightDeviceClassId) {
+            qWarning() << "Device" << device->id() << "is child to bridge" << device->parentId();
+            parentDevices[device->parentId()] += 1;
+        }
+    }
+    qWarning() << "have bridge devices:" << parentDevices.count();
+    QList<DeviceDescriptor> descriptors;
+    foreach (const DeviceId &id, parentDevices.keys()) {
+        if (parentDevices.value(id) < deviceIds.value(id)->paramValue(boblightServerChannelsParamTypeId).toInt()) {
+            for (int i = parentDevices.value(id); i < deviceIds.value(id)->paramValue(boblightServerChannelsParamTypeId).toInt(); i++) {
+                DeviceDescriptor descriptor(boblightDeviceClassId, deviceIds.value(id)->name() + " " + QString::number(i + 1), QString(), id);
+                descriptor.setParams(ParamList() << Param(boblightChannelParamTypeId, i));
+                qCDebug(dcBoblight()) << "Adding new boblight channel" << i + 1;
+                descriptors.append(descriptor);
+            }
+        }
+    }
+    if (!descriptors.isEmpty()) {
+        emit autoDevicesAppeared(boblightDeviceClassId, descriptors);
     }
 }
 
@@ -85,57 +121,164 @@ void DevicePluginBoblight::guhTimer()
     }
 }
 
+void DevicePluginBoblight::onPowerChanged(int channel, bool power)
+{
+    qCDebug(dcBoblight()) << "power changed" << channel << power;
+    BobClient *sndr = dynamic_cast<BobClient*>(sender());
+    foreach (Device* device, myDevices()) {
+        if (m_bobClients.value(device->parentId()) == sndr && device->paramValue(boblightChannelParamTypeId).toInt() == channel) {
+            qCWarning(dcBoblight()) << "setting state power" << power;
+            device->setStateValue(boblightPowerStateTypeId, power);
+        }
+    }
+}
+
+void DevicePluginBoblight::onBrightnessChanged(int channel, int brightness)
+{
+    BobClient *sndr = dynamic_cast<BobClient*>(sender());
+    foreach (Device* device, myDevices()) {
+        if (m_bobClients.value(device->parentId()) == sndr && device->paramValue(boblightChannelParamTypeId).toInt() == channel) {
+            device->setStateValue(boblightBrightnessStateTypeId, brightness);
+        }
+    }
+}
+
+void DevicePluginBoblight::onColorChanged(int channel, const QColor &color)
+{
+    BobClient *sndr = dynamic_cast<BobClient*>(sender());
+    foreach (Device* device, myDevices()) {
+        if (m_bobClients.value(device->parentId()) == sndr && device->paramValue(boblightChannelParamTypeId).toInt() == channel) {
+            device->setStateValue(boblightColorStateTypeId, color);
+        }
+    }
+}
+
+// mired color temp to rgb
+// mired: m = 1000000/T(kelvin)
+QColor DevicePluginBoblight::tempToRgb(int miredColorTemp)
+{
+    // hue: cold:      0: Param(Id: {d25423e7-b924-4b20-80b6-77eecc65d089}, Value:QVariant(QColor, QColor(AHSV 1, 0.622222, 0.176471, 1)))
+    // hue: warm:      0: Param(Id: {d25423e7-b924-4b20-80b6-77eecc65d089}, Value:QVariant(QColor, QColor(AHSV 1, 0.111111, 0.839216, 1)))
+
+    // this; cold:  I | Boblight: set channel 1 to color QColor(ARGB 1, 0.678431, 0.784314, 1)
+    // this: warm:  I | Boblight: set channel 1 to color QColor(ARGB 1, 0.576471, 0.713725, 1)
+
+    // convert mired color temp to kelvin
+    int temp = 1000000/miredColorTemp;
+
+//    temp = temp / 100;
+
+    int red = temp - 60;
+    red = 329.698727446 * qPow(red, -0.1332047592);
+
+    int green = temp - 60;
+    green = 99.4708025861 * qLn(green) - 161.1195681661;
+
+    int blue = 255;
+    qWarning() << "temp:" << temp << "rgb" << red << green << blue;
+    return QColor(red, green, blue);
+}
+
 DeviceManager::DeviceSetupStatus DevicePluginBoblight::setupDevice(Device *device)
 {
-    BobClient *bobClient = new BobClient(device->paramValue(boblightHostAddressParamTypeId).toString(), device->paramValue(boblightPortParamTypeId).toInt(), this);
-    //bobClient->setDefaultColor(configValue("default color").value<QColor>());
-//    bobClient->setDefaultColor(QColor("#ffed2b"));
+    if (device->deviceClassId() == boblightServerDeviceClassId) {
 
-    if (!bobClient->connectToBoblight()) {
-        bobClient->deleteLater();
-        return DeviceManager::DeviceSetupStatusFailure;
+        BobClient *bobClient = new BobClient(device->paramValue(boblightServerHostAddressParamTypeId).toString(), device->paramValue(boblightServerPortParamTypeId).toInt(), this);
+        if (!bobClient->connectToBoblight()) {
+            qCWarning(dcBoblight()) << "Error connecting to boblight...";
+            bobClient->deleteLater();
+            return DeviceManager::DeviceSetupStatusFailure;
+        }
+        qCDebug(dcBoblight()) << "Connected to boblight";
+        device->setStateValue(boblightServerConnectedStateTypeId, true);
+        m_bobClients.insert(device->id(), bobClient);
+        connect(bobClient, SIGNAL(connectionChanged()), this, SLOT(onConnectionChanged()));
+        connect(bobClient, &BobClient::powerChanged, this, &DevicePluginBoblight::onPowerChanged);
+        connect(bobClient, &BobClient::brightnessChanged, this, &DevicePluginBoblight::onBrightnessChanged);
+        connect(bobClient, &BobClient::colorChanged, this, &DevicePluginBoblight::onColorChanged);
+
+        return DeviceManager::DeviceSetupStatusSuccess;
     }
-
-    device->setStateValue(boblightConnectedStateTypeId, true);
-    m_bobClients.insert(device, bobClient);
-    connect(bobClient, SIGNAL(connectionChanged()), this, SLOT(onConnectionChanged()));
 
     return DeviceManager::DeviceSetupStatusSuccess;
 }
 
-DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, const Action &action)
+void DevicePluginBoblight::postSetupDevice(Device *device)
 {
-    BobClient *bobClient = m_bobClients.value(device);
-    if (!bobClient)
-        return DeviceManager::DeviceErrorHardwareNotAvailable;
-
-    if (!bobClient->connected())
-        return DeviceManager::DeviceErrorHardwareNotAvailable;
-
+    if (device->deviceClassId() == boblightServerDeviceClassId && m_canCreateAutoDevices) {
+        startMonitoringAutoDevices();
+    }
     if (device->deviceClassId() == boblightDeviceClassId) {
-        if (action.actionTypeId() == boblightPowerActionTypeId) {
-            bobClient->setPower(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightPowerParamTypeId).value().toBool());
-            return DeviceManager::DeviceErrorNoError;
-        } else if (action.actionTypeId() == boblightPriorityActionTypeId) {
-            bobClient->setPriority(action.param(boblightPriorityParamTypeId).value().toInt());
-            return DeviceManager::DeviceErrorNoError;
-        } else if (action.actionTypeId() == boblightColorActionTypeId) {
-            bobClient->setColor(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightColorParamTypeId).value().value<QColor>());
-            return DeviceManager::DeviceErrorNoError;
-        }  else if (action.actionTypeId() == boblightBrightnessActionTypeId) {
-            bobClient->setBrightness(action.param(boblightBrightnessParamTypeId).value().toInt());
-            return DeviceManager::DeviceErrorNoError;
+        BobClient *bobClient = m_bobClients.value(device->parentId());
+        if (bobClient) {
+            device->setStateValue(boblightConnectedStateTypeId, bobClient->connected());
+
+            QColor color = device->stateValue(boblightColorStateTypeId).value<QColor>();
+            int brightness = device->stateValue(boblightBrightnessStateTypeId).toInt();
+            bool power = device->stateValue(boblightPowerStateTypeId).toBool();
+
+            bobClient->setColor(device->paramValue(boblightChannelParamTypeId).toInt(), color);
+            bobClient->setBrightness(device->paramValue(boblightChannelParamTypeId).toInt(), brightness);
+            bobClient->setPower(device->paramValue(boblightChannelParamTypeId).toInt(), power);
+
         }
     }
+}
 
+DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, const Action &action)
+{
+//    if (!device->setupComplete()) {
+//        return DeviceManager::DeviceErrorHardwareNotAvailable;
+//    }
+    qCDebug(dcBoblight()) << "Execute action for boblight" << action.params();
+    if (device->deviceClassId() == boblightServerDeviceClassId) {
+        BobClient *bobClient = m_bobClients.value(device->id());
+        if (!bobClient || !bobClient->connected()) {
+            qCWarning(dcBoblight()) << "Boblight on" << device->paramValue(boblightServerHostAddressParamTypeId).toString() << "not connected";
+            return DeviceManager::DeviceErrorHardwareNotAvailable;
+        }
+
+        if (action.actionTypeId() == boblightServerPriorityActionTypeId) {
+            bobClient->setPriority(action.param(boblightServerPriorityStateParamTypeId).value().toInt());
+            return DeviceManager::DeviceErrorNoError;
+        }
+        qCWarning(dcBoblight()) << "Unhandled action" << action.actionTypeId() << "for BoblightServer device" << device;
+        return DeviceManager::DeviceErrorActionTypeNotFound;
+    }
+
+    if (device->deviceClassId() == boblightDeviceClassId) {
+        BobClient *bobClient = m_bobClients.value(device->parentId());
+        if (action.actionTypeId() == boblightPowerActionTypeId) {
+            bobClient->setPower(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightPowerStateParamTypeId).value().toBool());
+            return DeviceManager::DeviceErrorNoError;
+        }
+        if (action.actionTypeId() == boblightColorActionTypeId) {
+            bobClient->setColor(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightColorStateParamTypeId).value().value<QColor>());
+            return DeviceManager::DeviceErrorNoError;
+        }
+        if (action.actionTypeId() == boblightBrightnessActionTypeId) {
+            bobClient->setBrightness(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightBrightnessStateParamTypeId).value().toInt());
+            return DeviceManager::DeviceErrorNoError;
+        }
+        if (action.actionTypeId() == boblightColorTemperatureActionTypeId) {
+            bobClient->setColor(device->paramValue(boblightChannelParamTypeId).toInt(), tempToRgb(action.param(boblightColorTemperatureStateParamTypeId).value().toInt()));
+            return DeviceManager::DeviceErrorNoError;
+        }
+        return DeviceManager::DeviceErrorActionTypeNotFound;
+    }
     return DeviceManager::DeviceErrorDeviceClassNotFound;
 }
 
 void DevicePluginBoblight::onConnectionChanged()
 {
     BobClient *bobClient = static_cast<BobClient *>(sender());
-    foreach (Device *device, m_bobClients.keys(bobClient)) {
-        device->setStateValue(boblightConnectedStateTypeId, bobClient->connected());
+    foreach (const DeviceId &deviceId, m_bobClients.keys(bobClient)) {
+        foreach (Device *device, myDevices()) {
+            if (device->id() == deviceId || device->parentId() == deviceId) {
+                device->setStateValue(boblightConnectedStateTypeId, bobClient->connected());
+                break;
+            }
+        }
     }
 }
 

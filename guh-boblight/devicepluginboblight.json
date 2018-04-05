@@ -9,20 +9,14 @@
             "displayName": "Boblight",
             "deviceClasses": [
                 {
-                    "id": "05347200-416e-4b75-b4e3-6f913a2a7e76",
-                    "name": "boblight",
-                    "displayName": "Boblight",
+                    "id": "f267a7f4-ed75-4026-9b97-98884d7f4399",
+                    "name": "boblightServer",
+                    "displayName": "Boblight server",
                     "createMethods": ["user"],
+                    "interfaces": ["gateway", "connectable"],
                     "paramTypes": [
                         {
-                            "id": "7b5b784d-d623-4a2e-b081-9be84b1ce1a8",
-                            "name": "channel",
-                            "displayName": "Channel",
-                            "type": "int",
-                            "defaultValue": -1
-                        },
-                        {
-                            "id": "8d2845fa-96b6-41c3-b078-64c9bcef6c1b",
+                            "id": "de82ea8c-2f1e-4b93-b85a-f6a0b7f87e4a",
                             "name": "hostAddress",
                             "displayName": "Host Address",
                             "type" : "QString",
@@ -35,68 +29,52 @@
                             "displayName": "Port",
                             "type" : "int",
                             "defaultValue": 19333
+                        },
+                        {
+                            "id": "277f2458-d932-4a6e-a7bb-58814ab99663",
+                            "name": "channels",
+                            "displayName": "Channels",
+                            "type": "int",
+                            "defaultValue": 1
                         }
                     ],
-                    "actionTypes": [
+                    "stateTypes": [
                         {
-                            "id": "f9b8120a-439e-4e3d-98b6-09a09030c48c",
-                            "name": "power",
-                            "displayName": "Power",
-                            "paramTypes": [
-                                {
-                                    "id": "5177df1c-bd4a-4668-adb9-6834ccd806ea",
-                                    "name": "power",
-                                    "displayName": "Power",
-                                    "type": "bool",
-                                    "defaultValue": false
-                                }
-                            ]
+                            "id": "638fb9ec-4797-4ef6-a9b6-d935f1c49e17",
+                            "name": "connected",
+                            "displayName": "connected",
+                            "displayNameEvent": "Connected changed",
+                            "defaultValue": false,
+                            "type": "bool"
                         },
                         {
-                            "id": "5756a111-ece2-47b5-9cfb-21c3d2fc2313",
-                            "name": "color",
-                            "displayName": "Set Color",
-                            "paramTypes": [
-                                {
-                                    "id": "2e3d309d-964c-445a-8b0d-82df495261a8",
-                                    "name": "color",
-                                    "displayName": "Color",
-                                    "type": "QColor"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "f780b819-ef91-4a65-8dca-c3328889f5cc",
-                            "name": "brightness",
-                            "displayName": "set brightness",
-                            "paramTypes": [
-                                {
-                                    "id": "e912e612-2971-4ad3-a1b7-9ade5f1b0ef7",
-                                    "name": "brightness",
-                                    "displayName": "Brigthness",
-                                    "type": "int",
-                                    "defaultValue": 100,
-                                    "minValue": 0,
-                                    "maxValue": 100,
-                                    "unit": "Percentage"
-                                }
-                            ]
-                        },
-                        {
-                            "id": "13ebaadb-8bf8-428c-b332-f342706b8726",
+                            "id": "60d345e8-757c-4bc2-a96b-31121fc84356",
                             "name": "priority",
-                            "displayName": "set priority",
-                            "paramTypes": [
-                                {
-                                    "id": "c38a977e-b34f-45cd-b28a-a03e88007548",
-                                    "name": "priority",
-                                    "displayName": "Priority",
-                                    "type": "int",
-                                    "defaultValue": 1,
-                                    "minValue": 0,
-                                    "maxValue": 255
-                                }
-                            ]
+                            "displayName": "Priority",
+                            "displayNameEvent": "Priority changed",
+                            "displayNameAction": "Set priority",
+                            "type": "int",
+                            "defaultValue": 128,
+                            "minimumValue": 0,
+                            "maximumValue": 256,
+                            "writable": true
+                        }
+
+                    ]
+                },
+                {
+                    "id": "05347200-416e-4b75-b4e3-6f913a2a7e76",
+                    "name": "boblight",
+                    "displayName": "Boblight",
+                    "createMethods": ["auto"],
+                    "interfaces": ["colorlight", "connectable"],
+                    "paramTypes": [
+                        {
+                            "id": "7b5b784d-d623-4a2e-b081-9be84b1ce1a8",
+                            "name": "channel",
+                            "displayName": "Channel",
+                            "type": "int",
+                            "defaultValue": -1
                         }
                     ],
                     "stateTypes": [
@@ -107,6 +85,46 @@
                             "defaultValue": false,
                             "displayNameEvent": "Connected changed",
                             "type": "bool"
+                        },
+                        {
+                            "id": "95aec7b5-247a-42a2-8748-273b034b988c",
+                            "name": "power",
+                            "displayName": "Power",
+                            "defaultValue": false,
+                            "type": "bool",
+                            "displayNameEvent": "Power changed",
+                            "displayNameAction": "Set power",
+                            "writable": true
+                        },
+                        {
+                            "id": "0a92eab5-233c-4081-840b-15578091365c",
+                            "name": "brightness",
+                            "displayName": "Brightness",
+                            "defaultValue": 100,
+                            "type": "int",
+                            "displayNameEvent": "Brightness changed",
+                            "displayNameAction": "Set brightness",
+                            "writable": true
+                        },
+                        {
+                            "id": "b6f24e6f-d2a8-4f22-b40f-3a0e38bdabe0",
+                            "name": "colorTemperature",
+                            "displayName": "Color Temperature",
+                            "defaultValue": 100,
+                            "type": "int",
+                            "displayNameEvent": "Color Temperature changed",
+                            "displayNameAction": "Set color temperature",
+                            "writable": true
+                        },
+                        {
+                            "id": "a213d2d1-bd29-4a16-8459-520aa919ae67",
+                            "name": "color",
+                            "displayName": "Color",
+                            "defaultValue": "#ffffff",
+                            "type": "QColor",
+                            "displayNameEvent": "Color changed",
+                            "displayNameAction": "Set color",
+                            "writable": true
                         }
                     ]
                 }
