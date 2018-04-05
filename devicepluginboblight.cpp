@@ -239,7 +239,7 @@ DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, c
         }
 
         if (action.actionTypeId() == boblightServerPriorityActionTypeId) {
-            bobClient->setPriority(action.param(boblightServerPriorityStateParamTypeId).value().toInt());
+            bobClient->setPriority(action.param(boblightServerPriorityActionParamTypeId).value().toInt());
             return DeviceManager::DeviceErrorNoError;
         }
         qCWarning(dcBoblight()) << "Unhandled action" << action.actionTypeId() << "for BoblightServer device" << device;
@@ -249,19 +249,19 @@ DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, c
     if (device->deviceClassId() == boblightDeviceClassId) {
         BobClient *bobClient = m_bobClients.value(device->parentId());
         if (action.actionTypeId() == boblightPowerActionTypeId) {
-            bobClient->setPower(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightPowerStateParamTypeId).value().toBool());
+            bobClient->setPower(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightPowerActionParamTypeId).value().toBool());
             return DeviceManager::DeviceErrorNoError;
         }
         if (action.actionTypeId() == boblightColorActionTypeId) {
-            bobClient->setColor(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightColorStateParamTypeId).value().value<QColor>());
+            bobClient->setColor(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightColorActionParamTypeId).value().value<QColor>());
             return DeviceManager::DeviceErrorNoError;
         }
         if (action.actionTypeId() == boblightBrightnessActionTypeId) {
-            bobClient->setBrightness(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightBrightnessStateParamTypeId).value().toInt());
+            bobClient->setBrightness(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightBrightnessActionParamTypeId).value().toInt());
             return DeviceManager::DeviceErrorNoError;
         }
         if (action.actionTypeId() == boblightColorTemperatureActionTypeId) {
-            bobClient->setColor(device->paramValue(boblightChannelParamTypeId).toInt(), tempToRgb(action.param(boblightColorTemperatureStateParamTypeId).value().toInt()));
+            bobClient->setColor(device->paramValue(boblightChannelParamTypeId).toInt(), tempToRgb(action.param(boblightColorTemperatureActionParamTypeId).value().toInt()));
             return DeviceManager::DeviceErrorNoError;
         }
         return DeviceManager::DeviceErrorActionTypeNotFound;

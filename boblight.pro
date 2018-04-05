@@ -1,4 +1,4 @@
-include(/usr/include/nymea/plugins.pri)
+include(/usr/include/nymea/plugin.pri)
 
 QT += dbus bluetooth
 
