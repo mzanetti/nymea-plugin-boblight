@@ -4,7 +4,7 @@ Priority: options
 Maintainer: Michael Zanetti <michael.zanetti@guh.io>
 Build-depends: debhelper (>= 9.0.0),
                libnymea1-dev,
-               boblight-dev,
+               libboblight-dev,
 Standards-Version: 3.9.3
 
 Package: nymea-plugin-boblight
@@ -13,7 +13,7 @@ Multi-Arch: same
 Section: libs
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         boblight,
+         libboblight,
 Description: nymea.io plugin for boblight
  The nymea daemon is a plugin based IoT (Internet of Things) server. The
  server works like a translator for devices, things and services and
