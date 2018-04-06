@@ -5,9 +5,7 @@ QT += dbus bluetooth
 CONFIG += c++11
 
 TARGET = $$qtLibraryTarget(nymea_devicepluginboblight)
-
-INCLUDEPATH += /usr/local/include/
-LIBS += -L/usr/local/lib/ -lboblight
+LIBS += -lboblight
 
 SOURCES += \
     devicepluginboblight.cpp \

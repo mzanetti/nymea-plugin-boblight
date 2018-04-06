@@ -55,8 +55,8 @@
                             "displayNameAction": "Set priority",
                             "type": "int",
                             "defaultValue": 128,
-                            "minimumValue": 0,
-                            "maximumValue": 256,
+                            "minValue": 0,
+                            "maxValue": 256,
                             "writable": true
                         }
 
