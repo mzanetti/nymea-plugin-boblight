@@ -54,9 +54,10 @@ private slots:
     void onPowerChanged(int channel, bool power);
     void onBrightnessChanged(int channel, int brightness);
     void onColorChanged(int channel, const QColor &color);
+    void onPriorityChanged(int priority);
 
 private:
-    QColor tempToRgb(int miredColorTemp);
+    QColor tempToRgb(int temp);
 private:
     PluginTimer *m_pluginTimer = nullptr;
 

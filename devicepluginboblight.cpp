@@ -153,28 +153,40 @@ void DevicePluginBoblight::onColorChanged(int channel, const QColor &color)
     }
 }
 
-// mired color temp to rgb
-// mired: m = 1000000/T(kelvin)
-QColor DevicePluginBoblight::tempToRgb(int miredColorTemp)
+void DevicePluginBoblight::onPriorityChanged(int priority)
 {
-    // hue: cold:      0: Param(Id: {d25423e7-b924-4b20-80b6-77eecc65d089}, Value:QVariant(QColor, QColor(AHSV 1, 0.622222, 0.176471, 1)))
-    // hue: warm:      0: Param(Id: {d25423e7-b924-4b20-80b6-77eecc65d089}, Value:QVariant(QColor, QColor(AHSV 1, 0.111111, 0.839216, 1)))
+    BobClient *sndr = dynamic_cast<BobClient*>(sender());
+    foreach (Device* device, myDevices()) {
+        if (m_bobClients.value(device->id()) == sndr) {
+            device->setStateValue(boblightServerPriorityStateTypeId, priority);
+        }
+    }
+}
 
-    // this; cold:  I | Boblight: set channel 1 to color QColor(ARGB 1, 0.678431, 0.784314, 1)
-    // this: warm:  I | Boblight: set channel 1 to color QColor(ARGB 1, 0.576471, 0.713725, 1)
+QColor DevicePluginBoblight::tempToRgb(int temp)
+{
+    //  153   cold: 0.839216, 1, 0.827451
+    //  500   warm: 0.870588, 1, 0.266667
 
-    // convert mired color temp to kelvin
-    int temp = 1000000/miredColorTemp;
+    //   =>  153 : 214,255,212
+    //       500 : 222,255,67
 
-//    temp = temp / 100;
+    //  r => 153 : 214 = 500 : 222
+    //    => (temp - 153) : (x-214) = (500-153) : (255 - 214)
+    //    => x = (temp - 153) * (255-214) / (500-153)
+    //       r = x + 214
 
-    int red = temp - 60;
-    red = 329.698727446 * qPow(red, -0.1332047592);
+    int red = (temp - 153) * 41 / 347 + 214;
 
-    int green = temp - 60;
-    green = 99.4708025861 * qLn(green) - 161.1195681661;
+    int green = 255;
 
-    int blue = 255;
+    //  b => 153 : 212 = 500 : 67
+    //    => (temp - 153) : (212 - x) = (500-153) : (212 - 145)
+    //    => x = (temp - 153) * 145 / (500-153)
+    //       g = 212 - x
+
+    int blue = 212 - (temp - 153) * 145 / 347;
+
     qWarning() << "temp:" << temp << "rgb" << red << green << blue;
     return QColor(red, green, blue);
 }
@@ -190,12 +202,14 @@ DeviceManager::DeviceSetupStatus DevicePluginBoblight::setupDevice(Device *devic
             return DeviceManager::DeviceSetupStatusFailure;
         }
         qCDebug(dcBoblight()) << "Connected to boblight";
+        bobClient->setPriority(device->stateValue(boblightServerPriorityStateTypeId).toInt());
         device->setStateValue(boblightServerConnectedStateTypeId, true);
         m_bobClients.insert(device->id(), bobClient);
-        connect(bobClient, SIGNAL(connectionChanged()), this, SLOT(onConnectionChanged()));
+        connect(bobClient, &BobClient::connectionChanged, this, &DevicePluginBoblight::onConnectionChanged);
         connect(bobClient, &BobClient::powerChanged, this, &DevicePluginBoblight::onPowerChanged);
         connect(bobClient, &BobClient::brightnessChanged, this, &DevicePluginBoblight::onBrightnessChanged);
         connect(bobClient, &BobClient::colorChanged, this, &DevicePluginBoblight::onColorChanged);
+        connect(bobClient, &BobClient::priorityChanged, this, &DevicePluginBoblight::onPriorityChanged);
 
         return DeviceManager::DeviceSetupStatusSuccess;
     }
@@ -271,6 +285,7 @@ DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, c
 
 void DevicePluginBoblight::onConnectionChanged()
 {
+    qWarning() << "*********" << "connection changed";
     BobClient *bobClient = static_cast<BobClient *>(sender());
     foreach (const DeviceId &deviceId, m_bobClients.keys(bobClient)) {
         foreach (Device *device, myDevices()) {

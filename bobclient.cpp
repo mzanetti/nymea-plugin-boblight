@@ -78,9 +78,10 @@ bool BobClient::connected()
     return m_connected;
 }
 
-void BobClient::setPriority(const int &priority)
+void BobClient::setPriority(int priority)
 {
     qCDebug(dcBoblight) << "setting priority to" << priority << boblight_setpriority(m_boblight, priority);
+    emit priorityChanged(priority);
 }
 
 void BobClient::setPower(int channel, bool power)

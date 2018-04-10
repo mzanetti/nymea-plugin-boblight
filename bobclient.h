@@ -43,7 +43,7 @@ public:
     int lightsCount();
     QColor currentColor(const int &channel);
 
-    void setPriority(const int &priority);
+    void setPriority(int priority);
 
     void setPower(int channel, bool power);
     void setColor(int channel, QColor color);
@@ -72,6 +72,7 @@ signals:
     void powerChanged(int channel, bool power);
     void brightnessChanged(int channel, int brightness);
     void colorChanged(int channel, const QColor &color);
+    void priorityChanged(int priority);
 };
 
 #endif // BOBCLIENT_H
