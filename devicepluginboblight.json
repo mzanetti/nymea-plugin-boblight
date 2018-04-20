@@ -104,17 +104,21 @@
                             "type": "int",
                             "displayNameEvent": "Brightness changed",
                             "displayNameAction": "Set brightness",
-                            "writable": true
+                            "writable": true,
+                            "minValue": 0,
+                            "maxValue": 100
                         },
                         {
                             "id": "b6f24e6f-d2a8-4f22-b40f-3a0e38bdabe0",
                             "name": "colorTemperature",
                             "displayName": "Color Temperature",
-                            "defaultValue": 100,
+                            "defaultValue": 0,
                             "type": "int",
                             "displayNameEvent": "Color Temperature changed",
                             "displayNameAction": "Set color temperature",
-                            "writable": true
+                            "writable": true,
+                            "minValue": 0,
+                            "maxValue": 100
                         },
                         {
                             "id": "a213d2d1-bd29-4a16-8459-520aa919ae67",
