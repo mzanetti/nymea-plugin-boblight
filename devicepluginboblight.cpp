@@ -196,22 +196,24 @@ DeviceManager::DeviceSetupStatus DevicePluginBoblight::setupDevice(Device *devic
     if (device->deviceClassId() == boblightServerDeviceClassId) {
 
         BobClient *bobClient = new BobClient(device->paramValue(boblightServerHostAddressParamTypeId).toString(), device->paramValue(boblightServerPortParamTypeId).toInt(), this);
-        if (!bobClient->connectToBoblight()) {
+        bool connected = bobClient->connectToBoblight();
+        if (!connected) {
             qCWarning(dcBoblight()) << "Error connecting to boblight...";
-            bobClient->deleteLater();
-            return DeviceManager::DeviceSetupStatusFailure;
+        } else {
+            qCDebug(dcBoblight()) << "Connected to boblight";
         }
-        qCDebug(dcBoblight()) << "Connected to boblight";
         bobClient->setPriority(device->stateValue(boblightServerPriorityStateTypeId).toInt());
-        device->setStateValue(boblightServerConnectedStateTypeId, true);
+        device->setStateValue(boblightServerConnectedStateTypeId, connected);
         m_bobClients.insert(device->id(), bobClient);
         connect(bobClient, &BobClient::connectionChanged, this, &DevicePluginBoblight::onConnectionChanged);
         connect(bobClient, &BobClient::powerChanged, this, &DevicePluginBoblight::onPowerChanged);
         connect(bobClient, &BobClient::brightnessChanged, this, &DevicePluginBoblight::onBrightnessChanged);
         connect(bobClient, &BobClient::colorChanged, this, &DevicePluginBoblight::onColorChanged);
         connect(bobClient, &BobClient::priorityChanged, this, &DevicePluginBoblight::onPriorityChanged);
-
-        return DeviceManager::DeviceSetupStatusSuccess;
+    } else if (device->deviceClassId() == boblightDeviceClassId) {
+        BobClient *bobClient = m_bobClients.value(device->parentId());
+        device->setStateValue(boblightConnectedStateTypeId, bobClient->connected());
+        m_bobClients.insert(device->id(), bobClient);
     }
 
     return DeviceManager::DeviceSetupStatusSuccess;
@@ -224,7 +226,7 @@ void DevicePluginBoblight::postSetupDevice(Device *device)
     }
     if (device->deviceClassId() == boblightDeviceClassId) {
         BobClient *bobClient = m_bobClients.value(device->parentId());
-        if (bobClient) {
+        if (bobClient && bobClient->connected()) {
             device->setStateValue(boblightConnectedStateTypeId, bobClient->connected());
 
             QColor color = device->stateValue(boblightColorStateTypeId).value<QColor>();
@@ -241,9 +243,9 @@ void DevicePluginBoblight::postSetupDevice(Device *device)
 
 DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, const Action &action)
 {
-//    if (!device->setupComplete()) {
-//        return DeviceManager::DeviceErrorHardwareNotAvailable;
-//    }
+    if (!device->setupComplete()) {
+        return DeviceManager::DeviceErrorHardwareNotAvailable;
+    }
     qCDebug(dcBoblight()) << "Execute action for boblight" << action.params();
     if (device->deviceClassId() == boblightServerDeviceClassId) {
         BobClient *bobClient = m_bobClients.value(device->id());
@@ -262,6 +264,11 @@ DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, c
 
     if (device->deviceClassId() == boblightDeviceClassId) {
         BobClient *bobClient = m_bobClients.value(device->parentId());
+        if (!bobClient || !bobClient->connected()) {
+            qCWarning(dcBoblight()) << "Boblight not connected";
+            return DeviceManager::DeviceErrorHardwareNotAvailable;
+        }
+
         if (action.actionTypeId() == boblightPowerActionTypeId) {
             bobClient->setPower(device->paramValue(boblightChannelParamTypeId).toInt(), action.param(boblightPowerActionParamTypeId).value().toBool());
             return DeviceManager::DeviceErrorNoError;
@@ -285,8 +292,8 @@ DeviceManager::DeviceError DevicePluginBoblight::executeAction(Device *device, c
 
 void DevicePluginBoblight::onConnectionChanged()
 {
-    qWarning() << "*********" << "connection changed";
     BobClient *bobClient = static_cast<BobClient *>(sender());
+    qCDebug(dcBoblight()) << "Connection changed. BobClient:" << bobClient << bobClient->connected() << m_bobClients.keys(bobClient);
     foreach (const DeviceId &deviceId, m_bobClients.keys(bobClient)) {
         foreach (Device *device, myDevices()) {
             if (device->id() == deviceId || device->parentId() == deviceId) {

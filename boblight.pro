@@ -1,6 +1,6 @@
 include(/usr/include/nymea/plugin.pri)
 
-QT += dbus bluetooth
+QT += dbus bluetooth concurrent
 
 CONFIG += c++11
 

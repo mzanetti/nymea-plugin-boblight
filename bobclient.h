@@ -56,6 +56,7 @@ private:
     QString m_host;
     int m_port;
     bool m_connected;
+    int m_priority = 128;
 
     QMap<int, QColor> m_colors;
     QMap<int, BobChannel *> m_channels;

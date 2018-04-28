@@ -25,6 +25,7 @@
 #include "libboblight/boblight.h"
 
 #include <QDebug>
+#include <QtConcurrent>
 
 BobClient::BobClient(const QString &host, const int &port, QObject *parent) :
     QObject(parent),
@@ -54,7 +55,7 @@ bool BobClient::connectToBoblight()
     m_boblight = boblight_init();
 
     //try to connect, if we can't then bitch to stderr and destroy boblight
-    if (!boblight_connect(m_boblight, m_host.toLatin1().data(), m_port, 5000000) || !boblight_setpriority(m_boblight, 1)) {
+    if (!boblight_connect(m_boblight, m_host.toLatin1().data(), m_port, 1000000)) {
         qCWarning(dcBoblight) << "Failed to connect:" << boblight_geterror(m_boblight);
         boblight_destroy(m_boblight);
         m_boblight = nullptr;
@@ -63,6 +64,7 @@ bool BobClient::connectToBoblight()
     }
 
     qCDebug(dcBoblight) << "Connected to boblightd successfully.";
+    boblight_setpriority(m_boblight, m_priority);
     for (int i = 0; i < lightsCount(); ++i) {
         BobChannel *channel = new BobChannel(i, this);
         channel->setColor(QColor(255,255,255,0));
@@ -80,7 +82,10 @@ bool BobClient::connected()
 
 void BobClient::setPriority(int priority)
 {
-    qCDebug(dcBoblight) << "setting priority to" << priority << boblight_setpriority(m_boblight, priority);
+    m_priority = priority;
+    if (connected()) {
+        qCDebug(dcBoblight) << "setting priority to" << priority << boblight_setpriority(m_boblight, priority);
+    }
     emit priorityChanged(priority);
 }
 
